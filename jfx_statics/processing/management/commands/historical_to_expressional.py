@@ -21,7 +21,10 @@ class Args(object):
 
 
 class Command(BaseCommand):
-    help = ''
+    help = """
+        before this command
+        $ tail -n +3 files/16.csv > files/16_cut.csv
+        """
 
     def add_arguments(self, parser):
         parser.add_argument(Args.A_INPUT_FILE, nargs=1, type=str)
@@ -32,7 +35,6 @@ class Command(BaseCommand):
         output_file_path = Args.get_output_file(options)
 
         df = pd.read_csv(input_file_path, encoding="Shift-Jis")
-        # print(df[df['約定区分'] == '決済約定'])
 
         position_count = 0
         trade_count = 0
@@ -52,15 +54,19 @@ class Command(BaseCommand):
                     position_existence[position_count] = 1
 
                 row_dict[str(position_count) + '_' + str(position_existence[position_count]) + '_a_price'] = v['新規約定値']
-                row_dict[str(position_count) + '_' + str(position_existence[position_count]) + '_a_datetime'] = v['新規約定日時']
-                row_dict[str(position_count) + '_' + str(position_existence[position_count]) + '_a_direction'] = 1 if v['売買'] == '買' else -1
+                row_dict[str(position_count) + '_' + str(position_existence[position_count]) + '_a_datetime'] = v[
+                    '新規約定日時']
+                row_dict[str(position_count) + '_' + str(position_existence[position_count]) + '_a_direction'] = 1 if v[
+                                                                                                                          '売買'] == '買' else -1
                 row_dict[str(position_count) + '_' + str(position_existence[position_count]) + '_a_lot'] = v['Lot数']
 
             else:
                 trade_count += 1
                 row_dict[str(position_count) + '_' + str(position_existence[position_count]) + '_b_price'] = v['決済約定値']
-                row_dict[str(position_count) + '_' + str(position_existence[position_count]) + '_b_datetime'] = v['決済約定日時']
-                row_dict[str(position_count) + '_' + str(position_existence[position_count]) + '_b_direction'] = 1 if v['売買'] == '買' else -1
+                row_dict[str(position_count) + '_' + str(position_existence[position_count]) + '_b_datetime'] = v[
+                    '決済約定日時']
+                row_dict[str(position_count) + '_' + str(position_existence[position_count]) + '_b_direction'] = 1 if v[
+                                                                                                                          '売買'] == '買' else -1
                 row_dict[str(position_count) + '_' + str(position_existence[position_count]) + '_b_lot'] = v['Lot数']
 
                 position_count -= 1
