@@ -55,46 +55,40 @@ class Command(BaseCommand):
         result_list = []
         for i, v in df.iterrows():
             row = {}
-            prefix = str(node) + '_1_'
-            prefix_a = prefix + 'a_'
-            prefix_b = prefix + 'b_'
             result_key_a = 'a_'
             result_key_b = 'b_'
 
             ref_key = Label().set_node(node).set_times(1)
-            result_key = Label().set_node(node).set_times(1)
-
-
-
+            next_ref_key = Label().set_node(node + 1).set_times(1)
 
             if ref_key.a().price() in v and v.isnull()[ref_key.a().price()]:
                 continue
 
             row['node'] = node
 
-            row[result_key.a().datetime()] = v[ref_key.a().datetime()]
-            row[result_key.a().price()] = v[ref_key.a().price()]
-            row[result_key.a().direction()] = v[prefix_a + 'direction']
-            row[result_key_a + 'lot'] = v[prefix_a + 'lot']
+            row[result_key_a + 'datetime'] = v[ref_key.a().datetime()]
+            row[result_key_a + 'price'] = v[ref_key.a().price()]
+            row[result_key_a + 'direction'] = v[ref_key.a().direction()]
+            row[result_key_a + 'lot'] = v[ref_key.a().lot()]
 
             next_prefix_a = str(node + 1) + '_1_a_'
             if next_prefix_a + 'price' not in v:
-                row[result_key_b + 'datetime'] = v[prefix_b + 'datetime']
-                row[result_key_b + 'price'] = v[prefix_b + 'price']
-                row[result_key_b + 'direction'] = v[prefix_b + 'direction']
-                row[result_key_b + 'lot'] = v[prefix_b + 'lot']
+                row[result_key_b + 'datetime'] = v[ref_key.b().datetime()]
+                row[result_key_b + 'price'] = v[ref_key.b().price()]
+                row[result_key_b + 'direction'] = v[ref_key.b().direction()]
+                row[result_key_b + 'lot'] = v[ref_key.b().lot()]
 
             elif v.isnull()[next_prefix_a + 'price']:
-                row[result_key_b + 'datetime'] = v[prefix_b + 'datetime']
-                row[result_key_b + 'price'] = v[prefix_b + 'price']
-                row[result_key_b + 'direction'] = v[prefix_b + 'direction']
-                row[result_key_b + 'lot'] = v[prefix_b + 'lot']
+                row[result_key_b + 'datetime'] = v[ref_key.b().datetime()]
+                row[result_key_b + 'price'] = v[ref_key.b().price()]
+                row[result_key_b + 'direction'] = v[ref_key.b().direction()]
+                row[result_key_b + 'lot'] = v[ref_key.b().lot()]
 
             else:
-                row[result_key_b + 'datetime'] = v[next_prefix_a + 'datetime']
-                row[result_key_b + 'price'] = v[next_prefix_a + 'price']
-                row[result_key_b + 'direction'] = v[next_prefix_a + 'direction']
-                row[result_key_b + 'lot'] = v[next_prefix_a + 'lot']
+                row[result_key_b + 'datetime'] = v[next_ref_key.a().datetime()]
+                row[result_key_b + 'price'] = v[next_ref_key.a().price()]
+                row[result_key_b + 'direction'] = v[next_ref_key.a().direction()]
+                row[result_key_b + 'lot'] = v[next_ref_key.a().lot()]
 
             row['profit'] = self.calc_profit(
                 row[result_key_b + 'price'],
@@ -127,42 +121,37 @@ class Label(object):
         self.node = node
         return copy.deepcopy(self)
 
-
     def set_times(self, times):
         self.times = times
         return copy.deepcopy(self)
 
     def a(self):
-        self.set_a_or_b('a')
+        self._set_a_or_b('a')
         return copy.deepcopy(self)
 
     def b(self):
-        self.set_a_or_b('b')
-        return copy.deepcopy(self)
-
-    def set_a_or_b(self, a_or_b: str):
-        self.a_or_b = a_or_b
+        self._set_a_or_b('b')
         return copy.deepcopy(self)
 
     def datetime(self):
-        return self.set_suffix(Label.DATETIME).to_string()
+        return self.set_suffix(Label.DATETIME)._to_string()
 
     def price(self):
-        return self.set_suffix(Label.PRICE).to_string()
+        return self.set_suffix(Label.PRICE)._to_string()
 
     def direction(self):
-        return self.set_suffix(Label.DIRECTION).to_string()
+        return self.set_suffix(Label.DIRECTION)._to_string()
 
     def lot(self):
-        return self.set_suffix(Label.LOT).to_string()
+        return self.set_suffix(Label.LOT)._to_string()
 
     def set_suffix(self, suffix: str):
         self.suffix = suffix
         return copy.deepcopy(self)
 
-    def to_string(self):
-        return str(self.node) + '_' + str(self.time) + '_' + self.a_or_b + '_' + self.suffix
+    def _to_string(self):
+        return str(self.node) + '_' + str(self.times) + '_' + self.a_or_b + '_' + self.suffix
 
-    @staticmethod
-    def parse_from_text(self, text):
-        return Label()
+    def _set_a_or_b(self, a_or_b: str):
+        self.a_or_b = a_or_b
+        return copy.deepcopy(self)
